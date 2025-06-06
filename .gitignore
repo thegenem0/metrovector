@@ -1,0 +1,3 @@
+/target
+.devenv
+.devenv.flake.nix
