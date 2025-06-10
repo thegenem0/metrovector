@@ -1,0 +1,108 @@
+include "types.fbs";
+
+namespace metrovector.fbs;
+
+/// Extension container - only present if advanced features used
+table Extensions {
+  // Advanced data types
+  extended_types: ExtendedTypes;
+  
+  // Advanced quantization
+  quantization: QuantizationInfo;
+  
+  // Complex metadata (arrays, nested)
+  complex_metadata: ComplexMetadata;
+  
+  // Security features
+  security: SecurityInfo;
+  
+  // Performance optimization
+  performance_hints: PerformanceHints;
+  
+  // File statistics and validation
+  statistics: FileStatistics;
+  
+  // User-defined extensions
+  custom_extensions: [CustomExtension];
+}
+
+/// Extended data type support
+table ExtendedTypes {
+  supported_types: [string];    // e.g., ["BFloat16", "Complex64"]
+  type_mappings: [ubyte];       // How they map to core types
+}
+
+/// Advanced quantization
+table QuantizationInfo {
+  method: string (required);    // "PQ", "SQ", "BinaryPQ", etc.
+  parameters: [ubyte];          // Serialized config
+  codebooks_block_index: uint;
+  codes_block_index: uint;
+}
+
+/// Complex metadata support
+table ComplexMetadata {
+  array_columns: [ArrayColumn];
+  nested_columns: [NestedColumn];
+  map_columns: [MapColumn];
+}
+
+table ArrayColumn {
+  name: string (required);
+  element_type: DataType;
+  data_block_index: uint;
+  offsets_block_index: uint;
+}
+
+table NestedColumn {
+  name: string (required);
+  child_schema: [ubyte];        // Serialized schema
+  data_block_index: uint;
+}
+
+table MapColumn {
+  name: string (required);
+  key_type: DataType;
+  value_type: DataType;
+  keys_block_index: uint;
+  values_block_index: uint;
+  offsets_block_index: uint;
+}
+
+/// Security and encryption
+table SecurityInfo {
+  encryption_algorithm: string;
+  encrypted_blocks: [uint];
+  key_derivation: [ubyte];
+}
+
+/// Performance optimization hints
+table PerformanceHints {
+  memory_layout: string;        // "row_major", "column_major", "tiled"
+  prefetch_strategy: string;    // "sequential", "random", "hybrid"
+  cache_hints: [ubyte];
+}
+
+/// File statistics and quality metrics
+table FileStatistics {
+  creation_timestamp: ulong;
+  last_modified: ulong;
+  total_size: ulong;
+  integrity_hash: [ubyte];      // SHA256 of critical sections
+  
+  // Quality metrics
+  vector_quality_score: float;
+  index_quality_metrics: [ubyte];
+  
+  // Build info
+  build_tool: string;
+  build_version: string;
+}
+
+/// User-defined extension
+table CustomExtension {
+  name: string (required);      // Unique identifier
+  version: ushort;
+  data_block_index: uint;
+  metadata: [ubyte];            // Extension-specific data
+}

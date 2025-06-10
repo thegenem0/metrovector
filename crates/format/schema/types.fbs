@@ -1,0 +1,39 @@
+namespace metrovector.fbs;
+
+enum DataType : ubyte {
+  Float32 = 0,      // Most common
+  Float16 = 1,      // Memory efficient
+  Int8 = 2,         // Quantized vectors
+  UInt8 = 3,        // Quantized vectors
+  UInt32 = 4,       // IDs and counts
+  UInt64 = 5,       // Large IDs and timestamps
+  StringRef = 6,    // Offset into string heap
+}
+
+/// Vector storage types
+enum VectorType : ubyte {
+  Dense = 0,
+  Sparse = 1,
+}
+
+/// Distance metrics for vector comparison
+enum DistanceMetric : ubyte {
+  L2 = 0,            // Euclidean Distance
+  InnerProduct = 1,  // Dot Product (not normalized)
+  Cosine = 2,        // Cosine Similarity
+  Custom = 255,      // Extension-defined
+}
+
+/// Basic compression support
+enum CompressionAlgorithm : ubyte {
+  None = 0,
+  LZ4 = 1,          // Fast compression
+  Zstd = 2,         // High compression
+}
+
+/// Tombstone formats for deletion
+enum TombstoneFormat : ubyte {
+  None = 0,         // No deletions
+  Bitmap = 1,       // Bit per vector
+  SortedList = 2,   // List of deleted IDs
+}

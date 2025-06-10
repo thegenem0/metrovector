@@ -1,22 +1,11 @@
-{ pkgs, ... }:
-{
+{ pkgs, ... }: {
   languages.rust = {
     enable = true;
     channel = "stable";
-    components = [
-      "rustc"
-      "cargo"
-      "clippy"
-      "rustfmt"
-      "rust-analyzer"
-    ];
+    components = [ "rustc" "cargo" "clippy" "rustfmt" "rust-analyzer" ];
   };
 
-  packages = with pkgs; [
-    clang-tools_19
-    cargo-expand
-    lldb
-  ];
+  packages = with pkgs; [ clang-tools_19 cargo-expand lldb flatbuffers ];
 
   dotenv.enable = true;
 

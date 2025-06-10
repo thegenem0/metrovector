@@ -1,0 +1,36 @@
+include "types.fbs";
+
+namespace metrovector.fbs;
+
+/// Core index types
+union Index {
+  FlatIndex,
+  IVFIndex, 
+  HNSWIndex,
+  CustomIndex,      // For extensions
+}
+
+/// Brute force search
+table FlatIndex {
+  // No configuration needed
+}
+
+/// Inverted file index
+table IVFIndex {
+  num_lists: uint;
+  centroids_block_index: uint;
+  lists_block_index: uint;
+}
+
+/// Hierarchical NSW graph
+table HNSWIndex {
+  entry_point: ulong;
+  max_connections: uint;
+  graph_block_index: uint;
+}
+
+/// Extension-defined index
+table CustomIndex {
+  type_name: string (required);
+  config_block_index: uint;
+}

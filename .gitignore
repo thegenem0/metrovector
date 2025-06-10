@@ -1,3 +1,6 @@
 /target
 .devenv
 .devenv.flake.nix
+crates/format/generated
+gen.py
+context.txt

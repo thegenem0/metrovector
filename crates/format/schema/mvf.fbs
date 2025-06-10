@@ -1,0 +1,33 @@
+// MetroVector File Format v3.0
+// High-performance, memory-mappable vector storage format
+
+include "types.fbs";
+include "core.fbs";
+include "extensions.fbs";
+include "index.fbs";
+
+namespace metrovector.fbs;
+
+/// Root file structure
+table FileFooter {
+  // Version (always present)
+  format_version: ushort = 3;
+  
+  // Core data (always present)
+  vector_spaces: [VectorSpace] (required);
+  block_manifest: [DataBlock] (required);
+  
+  // Basic metadata (optional but common)
+  metadata_columns: [MetadataColumn];
+  string_heap_block_index: uint;        // 0 = no string data
+  
+  // Advanced features (only present if used)
+  extensions: Extensions;
+  
+  // Schema evolution support
+  compatibility_version: ushort = 3;     // Oldest version that can read this
+  deprecated_fields: [string];           // Fields being phased out
+}
+
+file_identifier "MVF3";
+root_type FileFooter;

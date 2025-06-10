@@ -1,0 +1,57 @@
+include "types.fbs";
+include "index.fbs";
+
+namespace metrovector.fbs;
+
+/// A block of binary data in the file
+struct DataBlock {
+  offset: ulong;
+  size: ulong;
+  compression: CompressionAlgorithm;
+  compressed_size: ulong;       // 0 if not compressed
+  checksum: uint;               // CRC32 for basic integrity
+}
+
+/// Basic metadata column
+table MetadataColumn {
+  name: string (required);
+  data_type: DataType;
+  data_block_index: uint;
+  
+  // Basic statistics
+  null_count: ulong;
+  min_value: [ubyte];           // Serialized min (optional)
+  max_value: [ubyte];           // Serialized max (optional)
+}
+
+/// Sparse vector metadata
+table SparseMetadata {
+  indices_block_index: uint;    // Non-zero positions
+  values_block_index: uint;     // Corresponding values
+  max_nnz: uint;                // Max non-zeros per vector
+}
+
+/// Deletion tracking
+table TombstoneInfo {
+  format: TombstoneFormat;
+  data_block_index: uint;       // 0 if no deletions
+  deleted_count: ulong;
+}
+
+/// A vector space (collection)
+table VectorSpace {
+  name: string (required);
+  dimension: uint;
+  total_vectors: ulong;
+  vector_type: VectorType;
+  distance_metric: DistanceMetric;
+  data_type: DataType;
+  
+  // Core data blocks
+  vectors_block_index: uint;
+  index_type: Index;
+  
+  vector_ids_block_index: uint;     // 0 = use positions as IDs
+  sparse_metadata: SparseMetadata;  // null if dense
+  tombstones: TombstoneInfo;        // null if no deletions
+}
