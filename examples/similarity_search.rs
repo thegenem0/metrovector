@@ -5,7 +5,8 @@
 use metrovector::{
     builder::MvfBuilder,
     mvf_fbs::{DataType, DistanceMetric, VectorType},
-    reader::MvfReader, vector_space::VectorSpace,
+    reader::MvfReader,
+    vector::vector_space::VectorSpace,
 };
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;

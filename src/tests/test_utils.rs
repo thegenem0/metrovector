@@ -22,6 +22,33 @@ impl TestContext {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct I32Bytes(pub i32);
+
+impl From<I32Bytes> for Vec<u8> {
+    fn from(val: I32Bytes) -> Self {
+        val.0.to_le_bytes().to_vec()
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct F32Bytes(pub f32);
+
+impl From<F32Bytes> for Vec<u8> {
+    fn from(val: F32Bytes) -> Self {
+        val.0.to_le_bytes().to_vec()
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct StringBytes(pub &'static str);
+
+impl From<StringBytes> for Vec<u8> {
+    fn from(val: StringBytes) -> Self {
+        val.0.as_bytes().to_vec()
+    }
+}
+
 pub fn create_test_vectors() -> Vec<Vec<f32>> {
     vec![
         vec![1.0, 2.0, 3.0, 4.0],

@@ -5,7 +5,7 @@ pub mod builder;
 pub mod reader;
 
 #[allow(dead_code)]
-pub mod vector_space;
+pub mod vector;
 
 #[cfg(test)]
 mod tests;

@@ -8,7 +8,7 @@ use metrovector::{
     builder::MvfBuilder,
     mvf_fbs::{DataType, DistanceMetric, VectorType},
     reader::MvfReader,
-    vector_space::VectorSpace,
+    vector::vector_space::VectorSpace,
 };
 use std::env;
 use std::time::Instant;
