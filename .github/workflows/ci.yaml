@@ -26,7 +26,7 @@ jobs:
       - name: Install flatc
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatbuffers-compiler
+          sudo apt-get install -y flatbuffers
           flatc --version
       #
       - name: Install cargo-nextest
