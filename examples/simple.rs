@@ -2,7 +2,7 @@
 //!
 //! Run with: cargo run --example simple
 
-use metrovector_format::{
+use metrovector::{
     builder::MvfBuilder,
     mvf_fbs::{DataType, DistanceMetric, VectorType},
     reader::MvfReader,

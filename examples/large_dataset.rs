@@ -4,7 +4,7 @@
 //! Or with custom size: cargo run --example large_dataset -- --size 4gb
 //! Or with custom params: cargo run --example large_dataset -- --vectors 1000000 --dimensions 768
 
-use metrovector_format::{
+use metrovector::{
     builder::MvfBuilder,
     mvf_fbs::{DataType, DistanceMetric, VectorType},
     reader::MvfReader,

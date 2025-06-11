@@ -164,7 +164,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "metrovector-format"
+name = "metrovector"
 version = "0.1.0"
 dependencies = [
  "ahash",
