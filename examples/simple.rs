@@ -11,7 +11,7 @@ use metrovector::{
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== MVF Simple Example ===\n");
 
-    // Create some sample vectors
+    // Some sample vectors
     let vectors = vec![
         vec![1.0, 2.0, 3.0, 4.0],
         vec![5.0, 6.0, 7.0, 8.0],
@@ -20,9 +20,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         vec![1.0, 3.0, 5.0, 7.0],
     ];
 
-    println!("1. Building MVF file with {} vectors", vectors.len());
+    println!("Building MVF file with {} vectors", vectors.len());
 
-    // Build the MVF file
     let mut builder = MvfBuilder::new();
     let _space_idx = builder.add_vector_space(
         "embeddings",
@@ -33,40 +32,69 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     builder.add_vectors("embeddings", &vectors)?;
+
+    // Add some metadata using the typed helper methods
+    #[derive(Copy, Clone)]
+    struct I32Metadata(i32);
+
+    impl From<I32Metadata> for Vec<u8> {
+        fn from(val: I32Metadata) -> Self {
+            val.0.to_le_bytes().to_vec()
+        }
+    }
+
+    let ids = vec![
+        I32Metadata(1),
+        I32Metadata(2),
+        I32Metadata(3),
+        I32Metadata(4),
+        I32Metadata(5),
+    ];
+    builder.add_metadata_column("vector_ids", DataType::UInt32, &ids)?;
+
     let built_mvf = builder.build();
 
-    // Write to file
     let temp_file = std::env::temp_dir().join("simple_example.mvf");
     built_mvf.save(&temp_file)?;
     println!("   Written to: {:?}", temp_file);
 
-    // Read the file back
-    println!("\n2. Reading MVF file");
-    let mvf_file = MvfReader::open(&temp_file)?;
+    println!("\nReading MVF file");
+    let reader = MvfReader::open(&temp_file)?;
 
-    println!("   File version: {}", mvf_file.version());
-    println!("   Vector spaces: {}", mvf_file.num_vector_spaces());
+    println!("   File version: {}", reader.version());
+    println!("   Vector spaces: {}", reader.num_vector_spaces());
+    println!("   File size: {:.2} KB", reader.file_size() as f64 / 1024.0);
 
-    // Get the first vector space
-    let space = mvf_file
-        .vector_space(mvf_file.vector_space_names().first().unwrap())
-        .unwrap();
+    if reader.has_metadata() {
+        println!("   Metadata columns: {:?}", reader.metadata_column_names());
+    }
+
+    let space_names = reader.vector_space_names();
+    let space = reader.vector_space(&space_names[0])?;
 
     println!("   Space name: '{}'", space.name());
     println!("   Dimensions: {}", space.dimension());
     println!("   Total vectors: {}", space.total_vectors());
+    println!("   Vector type: {:?}", space.vector_type());
+    println!("   Distance metric: {:?}", space.distance_metric());
     println!("   Data type: {:?}", space.data_type());
 
-    // Read individual vectors
-    println!("\n3. Reading vectors:");
+    println!("\nReading vectors:");
     for i in 0..space.total_vectors() {
         let vector = space.get_vector(i)?;
         let data = vector.as_f32()?;
         println!("   Vector {}: {:?}", i, data);
     }
 
-    // Demonstrate similarity search
-    println!("\n4. Similarity search:");
+    println!("\nBatch vector reading:");
+    let indices = vec![0, 2, 4]; // Read vectors 0, 2, and 4
+    let batch_vectors = space.get_vectors_batch(&indices)?;
+    for (i, vector) in batch_vectors.iter().enumerate() {
+        let data = vector.as_f32()?;
+        println!("   Batch vector {} (index {}): {:?}", i, indices[i], data);
+    }
+
+    println!("\nSimilarity search:");
     let query = vec![2.5, 4.5, 6.5, 8.5];
     println!("   Query vector: {:?}", query);
 
@@ -77,7 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let vector = space.get_vector(i)?;
         let data = vector.as_f32()?;
 
-        // Calculate Euclidean distance
+        // Euclidean distance
         let distance: f32 = query
             .iter()
             .zip(data.iter())
@@ -101,8 +129,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("   Result: {:?}", vector);
     }
 
-    // Clean up
+    println!("\nFile validation:");
+    reader.validate()?;
+    println!("   File validation passed!");
+
     std::fs::remove_file(&temp_file).ok();
+    println!("\n   Cleaned up temporary file.");
 
     Ok(())
 }
