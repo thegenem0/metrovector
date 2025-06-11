@@ -59,14 +59,7 @@ enum IndexConfig {
 
 impl<'a> MvfBuilder<'a> {
     pub fn new() -> Self {
-        Self {
-            builder: FlatBufferBuilder::with_capacity(1024),
-            vector_spaces: Vec::new(),
-            metadata_columns: Vec::new(),
-            data_blocks: Vec::new(),
-            string_heap: Vec::new(),
-            string_offsets: HashMap::new(),
-        }
+        Self::default()
     }
 
     pub fn version(&self) -> u16 {
@@ -466,6 +459,19 @@ impl BuiltMvf {
         bytes.extend_from_slice(&METRO_MAGIC);
 
         Ok(bytes)
+    }
+}
+
+impl Default for MvfBuilder<'_> {
+    fn default() -> Self {
+        Self {
+            builder: FlatBufferBuilder::with_capacity(1024),
+            vector_spaces: Vec::new(),
+            metadata_columns: Vec::new(),
+            data_blocks: Vec::new(),
+            string_heap: Vec::new(),
+            string_offsets: HashMap::new(),
+        }
     }
 }
 

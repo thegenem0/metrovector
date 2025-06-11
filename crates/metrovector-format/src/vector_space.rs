@@ -1,4 +1,5 @@
 use crate::{
+    METRO_MAGIC,
     errors::{MvfError, Result},
     mvf_fbs::{self, DataBlock},
 };
@@ -63,7 +64,11 @@ impl<'a> VectorSpace<'a> {
         }
 
         let block = self.blocks.get(block_index);
-        let start_offset = block.offset() as usize;
+
+        // Push offset over by METRO_MAGIC.len() to account for the magic bytes
+        // as this is a relative offset calculation
+        let data_start_offset = METRO_MAGIC.len();
+        let start_offset = data_start_offset + block.offset() as usize;
         let block_data = &self.data[start_offset..start_offset + block.size() as usize];
 
         let element_size = match self.data_type() {

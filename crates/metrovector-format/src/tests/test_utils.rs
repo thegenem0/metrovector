@@ -48,19 +48,19 @@ pub fn create_test_mvf() -> crate::builder::BuiltMvf {
     builder.build()
 }
 
-pub fn create_invalid_mvf_bytes() -> Vec<u8> {
-    vec![0x00; 16] // Too small and invalid
-}
-
-pub fn create_minimal_valid_mvf_bytes() -> Vec<u8> {
-    let mut bytes = vec![0u8; 1024]; // Data section
-
-    // Add footer size (4 bytes)
-    let footer_size = 100u32;
-    bytes.extend_from_slice(&footer_size.to_le_bytes());
-
-    // Add file identifier
-    bytes.extend_from_slice(b"MVF0");
-
-    bytes
-}
+// pub fn create_invalid_mvf_bytes() -> Vec<u8> {
+//     vec![0x00; 16] // Too small and invalid
+// }
+//
+// pub fn create_minimal_valid_mvf_bytes() -> Vec<u8> {
+//     let mut bytes = vec![0u8; 1024]; // Data section
+//
+//     // Add footer size (4 bytes)
+//     let footer_size = 100u32;
+//     bytes.extend_from_slice(&footer_size.to_le_bytes());
+//
+//     // Add file identifier
+//     bytes.extend_from_slice(b"MVF0");
+//
+//     bytes
+// }
