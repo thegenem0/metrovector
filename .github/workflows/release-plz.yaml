@@ -54,12 +54,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install flatc
-        run: |
-          wget https://github.com/google/flatbuffers/releases/download/v25.2.10/Linux.flatc.binary.clang++-18.zip
-          unzip Linux.flatc.binary.clang++-18.zip
-          sudo mv flatc /usr/local/bin
-          sudo chmod +x /usr/local/bin/flatc
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
