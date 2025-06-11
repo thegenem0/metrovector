@@ -19,6 +19,7 @@ It provides memory-efficient storage, fast random access, and support for variou
 
 ## Architecture
 
+```bash
 ┌─────────────────────────────────────────────────────────────┐
 │                    MVF File Structure                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -29,11 +30,12 @@ It provides memory-efficient storage, fast random access, and support for variou
             ┌─────────────────────────────────┐
             │     Vector Data Block           │
             ├─────────────────────────────────┤
-            │ Vector 0: [1.0, 2.0, 3.0, ...]    │
-            │ Vector 1: [4.0, 5.0, 6.0, ...]    │
-            │ Vector 2: [7.0, 8.0, 9.0, ...]    │
+            │ Vector 0: [1.0, 2.0, 3.0, ...]  │
+            │ Vector 1: [4.0, 5.0, 6.0, ...]  │
+            │ Vector 2: [7.0, 8.0, 9.0, ...]  │
             │          ...                    │
             └─────────────────────────────────┘
+```
 
 ## Installation
 
