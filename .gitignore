@@ -5,3 +5,4 @@ crates/format/generated
 gen.py
 context.txt
 lcov.info
+generated
