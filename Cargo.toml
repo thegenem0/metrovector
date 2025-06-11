@@ -1,9 +1,14 @@
 [package]
 name = "metrovector"
 version = "0.1.0"
+authors = ["thegenem0 <nemethgergo02@gmail.com>"]
+description = "A high-performance, compact binary format for storing and querying vector embeddings."
+documentation = "https://github.com/thegenem0/metrovector"
 edition = "2024"
-
-
+keywords = ["vector", "search", "similarity", "machine-learning"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/thegenem0/metrovector"
+rust-version = "1.87.0"
 
 [dependencies]
 ahash = "0.8.12"
