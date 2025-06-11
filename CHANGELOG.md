@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.1.1](https://github.com/thegenem0/metrovector/compare/v0.1.0...v0.1.1) - 2025-06-11
+
+### Other
+
+- release v0.1.0
+
 ## [0.1.0](https://github.com/thegenem0/metrovector/releases/tag/v0.1.0) - 2025-06-11
 
 ### Added

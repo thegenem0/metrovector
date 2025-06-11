@@ -1,6 +1,6 @@
 [package]
 name = "metrovector"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["thegenem0 <nemethgergo02@gmail.com>"]
 description = "A high-performance, compact binary format for storing and querying vector embeddings."
 documentation = "https://github.com/thegenem0/metrovector"
