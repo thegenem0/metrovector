@@ -573,11 +573,9 @@ impl Default for MvfBuilder<'_> {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::tests::{create_test_mvf, create_test_vectors, I32Bytes, StringBytes, TestContext};
+    use crate::tests::{I32Bytes, StringBytes, TestContext, create_test_mvf, create_test_vectors};
 
     use super::*;
-
 
     #[test]
     fn test_builder_creation() {
