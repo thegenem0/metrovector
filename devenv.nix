@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
 
   languages.rust = {
     enable = true;
@@ -20,6 +21,7 @@
     flatbuffers
     cargo-llvm-cov
     cargo-nextest
+    git-cliff
   ];
 
   dotenv.enable = true;
