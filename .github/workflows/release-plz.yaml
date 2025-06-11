@@ -28,6 +28,7 @@ jobs:
           unzip Linux.flatc.binary.clang++-18.zip
           sudo mv flatc /usr/local/bin
           sudo chmod +x /usr/local/bin/flatc
+          rm Linux.flatc.binary.clang++-18.zip
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
