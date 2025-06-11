@@ -1,4 +1,4 @@
-//! large dataset example - creates 2.5GB MVF file by default
+//! Large dataset example - creates multi-GB MVF files for performance testing
 //!
 //! Run with: cargo run --example large_dataset
 //! Or with custom size: cargo run --example large_dataset -- --size 4gb
@@ -6,9 +6,9 @@
 
 use metrovector::{
     builder::MvfBuilder,
+    errors::Result,
     mvf_fbs::{DataType, DistanceMetric, VectorType},
     reader::MvfReader,
-    vectors::vector_space::VectorSpace,
 };
 use std::env;
 use std::time::Instant;
@@ -24,7 +24,6 @@ impl DatasetConfig {
     fn from_args() -> Self {
         let args: Vec<String> = env::args().collect();
 
-        // Parse command line arguments
         let mut num_vectors = 0;
         let mut dimensions = 0;
         let mut target_size_gb = 2.5; // Default 2.5GB
@@ -60,13 +59,11 @@ impl DatasetConfig {
             i += 1;
         }
 
-        // Calculate dimensions based on target size if not specified
         if num_vectors == 0 || dimensions == 0 {
             let target_bytes = (target_size_gb * 1024.0 * 1024.0 * 1024.0) as usize;
             let bytes_per_float = 4; // Float32
 
             if num_vectors == 0 && dimensions == 0 {
-                // Modern embedding dimensions: 384, 512, 768, 1024, 1536
                 dimensions = 768; // Common for sentence transformers
                 num_vectors = target_bytes / (dimensions * bytes_per_float);
             } else if num_vectors == 0 {
@@ -91,7 +88,7 @@ impl DatasetConfig {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     println!("=== MVF Large Dataset Example ===\n");
 
     let config = DatasetConfig::from_args();
@@ -112,20 +109,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::thread::sleep(std::time::Duration::from_secs(5));
     }
 
+    let temp_file = create_large_dataset(&config)?;
+    validate_and_benchmark(&temp_file, &config)?;
+
+    Ok(())
+}
+
+fn create_large_dataset(config: &DatasetConfig) -> Result<std::path::PathBuf> {
     println!(
-        "\n1. Generating {} vectors with {} dimensions...",
+        "\nGenerating {} vectors with {} dimensions...",
         config.num_vectors, config.dimensions
     );
 
-    let chunk_size = 10_000; // Gen 10k vectors at a time
     let temp_file = std::env::temp_dir().join(format!(
         "large_dataset_{:.1}gb.mvf",
         config.estimated_size_gb()
     ));
 
     let total_start = Instant::now();
-
     let mut builder = MvfBuilder::new();
+
     builder.add_vector_space(
         "large_embeddings",
         config.dimensions as u32,
@@ -134,7 +137,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.data_type,
     );
 
+    // Add metadata for tracking batch access
+    #[derive(Copy, Clone)]
+    struct BatchMetadata(u32);
+
+    impl From<BatchMetadata> for Vec<u8> {
+        fn from(val: BatchMetadata) -> Self {
+            val.0.to_le_bytes().to_vec()
+        }
+    }
+
+    let chunk_size = 10_000; // Generate 10k vectors at a time
     let mut vectors_added = 0;
+    let mut metadata_batch = Vec::new();
     let generation_start = Instant::now();
 
     while vectors_added < config.num_vectors {
@@ -149,11 +164,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         builder.add_vectors("large_embeddings", &chunk_vectors)?;
         let add_time = add_start.elapsed();
 
+        let batch_id = vectors_added / chunk_size;
+        for _ in 0..current_chunk_size {
+            metadata_batch.push(BatchMetadata(batch_id as u32));
+        }
+
         vectors_added += current_chunk_size;
 
         let progress = (vectors_added as f32 / config.num_vectors as f32) * 100.0;
         println!(
-            "  Progress: {:.1}% ({:?}/{:?}) - Gen: {:.3}ms, Add: {:.3}ms",
+            "  Progress: {:.1}% ({:?}/{:?}) - Gen: {:.1}ms, Add: {:.1}ms",
             progress,
             vectors_added,
             config.num_vectors,
@@ -161,6 +181,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             add_time.as_millis()
         );
     }
+
+    // Add all metadata at once
+    builder.add_metadata_column("batch_id", DataType::UInt32, &metadata_batch)?;
 
     let total_generation_time = generation_start.elapsed();
     println!(
@@ -193,35 +216,50 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         file_size as f32 / write_time.as_secs_f32() / (1024.0 * 1024.0)
     );
 
-    println!("\nVerifying file integrity...");
-    let read_start = Instant::now();
-    let mvf_file = MvfReader::open(&temp_file)?;
-    let read_time = read_start.elapsed();
-    println!("  Opened in {:.2}s", read_time.as_secs_f32());
+    let total_time = total_start.elapsed();
+    println!(
+        "  Total creation time: {:.2}s ({:.1} minutes)",
+        total_time.as_secs_f32(),
+        total_time.as_secs_f32() / 60.0
+    );
 
-    let space = mvf_file.vector_space(mvf_file.vector_space_names().first().unwrap())?;
+    Ok(temp_file)
+}
+
+fn validate_and_benchmark(temp_file: &std::path::Path, config: &DatasetConfig) -> Result<()> {
+    println!("\nValidating file integrity...");
+    let read_start = Instant::now();
+    let reader = MvfReader::open(temp_file)?;
+    let read_time = read_start.elapsed();
+    println!("  Opened in {:.2}ms", read_time.as_millis());
+
+    reader.validate()?;
+    println!("  Structure validation passed");
+
+    let space = reader.vector_space("large_embeddings")?;
     println!(
         "  Verified: {} vectors, {} dimensions",
         space.total_vectors(),
         space.dimension()
     );
 
-    println!("\nBenchmarking random access...");
+    if reader.has_metadata() {
+        let metadata_columns = reader.metadata_column_names();
+        println!("  Metadata columns: {:?}", metadata_columns);
+    }
+
+    println!("\nPerformance benchmarks...");
+
     benchmark_random_access(&space, 1000)?;
 
-    println!("\nBenchmarking sequential access...");
-    benchmark_sequential_access(&space, 100_000)?;
+    benchmark_sequential_access(&space, 100_000.min(space.total_vectors()))?;
 
-    println!("\nMemory analysis...");
-    analyze_memory_usage(file_size)?;
+    benchmark_batch_access(&space, 10_000)?;
 
-    let total_time = total_start.elapsed();
+    analyze_memory_usage(std::fs::metadata(temp_file)?.len())?;
+
+    let file_size_gb = std::fs::metadata(temp_file)?.len() as f32 / (1024.0 * 1024.0 * 1024.0);
     println!("\n=== Summary ===");
-    println!(
-        "Total time: {:.2}s ({:.1} minutes)",
-        total_time.as_secs_f32(),
-        total_time.as_secs_f32() / 60.0
-    );
     println!("File created: {:?}", temp_file);
     println!("File size: {:.2} GB", file_size_gb);
     println!("Vectors: {:?}", config.num_vectors);
@@ -232,7 +270,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::io::stdin().read_line(&mut input).ok();
 
     if !input.trim().to_lowercase().starts_with('y') {
-        std::fs::remove_file(&temp_file).ok();
+        std::fs::remove_file(temp_file).ok();
         println!("File deleted.");
     } else {
         println!("File kept at: {:?}", temp_file);
@@ -247,7 +285,7 @@ fn generate_vector_chunk(start_idx: usize, count: usize, dimensions: usize) -> V
             let vector_idx = start_idx + i;
             (0..dimensions)
                 .map(|dim| {
-                    // Gen realistic embedding-like data
+                    // Generate realistic embedding-like data
                     let base = vector_idx as f32 * 0.1 + dim as f32 * 0.01;
                     let noise = ((vector_idx + dim) as f32 * 12345.0).sin() * 0.1;
                     let trend = (dim as f32 / dimensions as f32 - 0.5) * 2.0; // -1 to 1
@@ -261,9 +299,9 @@ fn generate_vector_chunk(start_idx: usize, count: usize, dimensions: usize) -> V
 }
 
 fn benchmark_random_access(
-    space: &VectorSpace,
+    space: &metrovector::vectors::vector_space::VectorSpace,
     samples: usize,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     use rand::Rng;
 
     let mut rng = rand::rng();
@@ -281,6 +319,7 @@ fn benchmark_random_access(
         if i % (samples / 10) == 0 {
             let progress = (i as f32 / samples as f32) * 100.0;
             print!("\r  Random access progress: {:.1}%", progress);
+            std::io::Write::flush(&mut std::io::stdout()).ok();
         }
     }
 
@@ -300,32 +339,23 @@ fn benchmark_random_access(
 }
 
 fn benchmark_sequential_access(
-    space: &VectorSpace,
+    space: &metrovector::vectors::vector_space::VectorSpace,
     max_vectors: u64,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     let vectors_to_process = space.total_vectors().min(max_vectors);
 
     let start = Instant::now();
+    let mut checksum = 0.0f64; // Prevent dead code elimination
 
-    // Adding a dummy checksum to prevent dead code elimination
-    // If we don't read a value out of the vector, the compiler could do any of a few things:
-    // 1. Skip the as_f32() call as we don't access the data
-    // 2. Skip reading the actual vector data entirely
-    // 3. In extreme cases, it might just optimize out the entire loop
-    // Either of which would make this benchmark useless
-    // This way we force the compiler to leave this code in the binary,
-    // and actually use CPU cycles to read the data
-    // In a real application, you probably would use the vector data,
-    // so this wouldn't be necessary
-    let mut checksum = 0.0f64;
     for i in 0..vectors_to_process {
         let vector = space.get_vector(i)?;
         let data = vector.as_f32()?;
-        checksum += data[0] as f64; // <-- This forces data access
+        checksum += data[0] as f64; // <- This forces data access
 
         if i % (vectors_to_process / 20) == 0 {
             let progress = (i as f32 / vectors_to_process as f32) * 100.0;
             print!("\r  Sequential progress: {:.1}%", progress);
+            std::io::Write::flush(&mut std::io::stdout()).ok();
         }
     }
 
@@ -339,12 +369,39 @@ fn benchmark_sequential_access(
         "    Throughput: {:.0} vectors/sec",
         vectors_to_process as f32 / elapsed.as_secs_f32()
     );
-    println!("    Checksum: {:.6} (ignore this)", checksum);
+    println!("    Checksum: {:.6} (verification)", checksum);
 
     Ok(())
 }
 
-fn analyze_memory_usage(file_size: u64) -> Result<(), Box<dyn std::error::Error>> {
+fn benchmark_batch_access(
+    space: &metrovector::vectors::vector_space::VectorSpace,
+    batch_size: usize,
+) -> Result<()> {
+    let indices: Vec<u64> = (0..batch_size.min(space.total_vectors() as usize) as u64).collect();
+
+    let start = Instant::now();
+    let batch_vectors = space.get_vectors_batch(&indices)?;
+    let batch_time = start.elapsed();
+
+    let mut checksum = 0.0;
+    for vector in batch_vectors {
+        let data = vector.as_f32()?;
+        checksum += data[0];
+    }
+
+    println!(
+        "  Batch access ({} vectors): {:.2}ms",
+        indices.len(),
+        batch_time.as_millis()
+    );
+    println!("    Checksum: {:.6} (verification)", checksum);
+
+    Ok(())
+}
+
+fn analyze_memory_usage(file_size: u64) -> Result<()> {
+    println!("\n6. Memory analysis:");
     println!(
         "  File size on disk: {:.2} GB",
         file_size as f32 / (1024.0 * 1024.0 * 1024.0)
@@ -355,18 +412,24 @@ fn analyze_memory_usage(file_size: u64) -> Result<(), Box<dyn std::error::Error>
         let pages_needed = file_size.div_ceil(page_size);
         println!("  OS page size: {} KB", page_size / 1024);
         println!("  Pages needed: {:?}", pages_needed);
+
+        // This is a rough estimate
+        println!(
+            "  Memory overhead: ~{:.1} MB (page tables, etc.)",
+            pages_needed as f32 * 8.0 / (1024.0 * 1024.0)
+        );
     }
 
     Ok(())
 }
 
-fn get_page_size() -> Result<u64, Box<dyn std::error::Error>> {
+fn get_page_size() -> Result<u64> {
     #[cfg(unix)]
     {
         Ok(unsafe { libc::sysconf(libc::_SC_PAGESIZE) } as u64)
     }
-    #[cfg(not(any(unix)))]
+    #[cfg(not(unix))]
     {
-        Ok(4096) // Default assumption
+        Ok(4096) // Default assumption for non-Unix platforms 
     }
 }

@@ -11,7 +11,7 @@ use crate::{
 /// # Examples
 ///
 /// ```no_run
-/// # use metrovector::{vector::mem::VectorSlice, mvf_fbs::DataType, errors::Result};
+/// # use metrovector::{vectors::mem::VectorSlice, mvf_fbs::DataType, errors::Result};
 /// # fn example() -> Result<()> {
 /// let data = vec![1u8, 2, 3, 4, 5, 6, 7, 8];
 /// let slice = VectorSlice::new(&data, 4, 2, DataType::Float32)?;

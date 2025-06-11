@@ -6,7 +6,7 @@
 /// # Examples
 ///
 /// ```
-/// use metrovector::vector::access::AccessPattern;
+/// use metrovector::vectors::access::AccessPattern;
 ///
 /// let pattern = AccessPattern::new(vec![100, 50, 75, 200]);
 /// println!("Sorted indices: {:?}", pattern.indices());
