@@ -2,6 +2,8 @@
 
 A high-performance, compact binary format for storing and querying vector embeddings, designed as a foundational building block for vector databases.
 
+[![CI](https://github.com/thegenem0/metrovector/actions/workflows/ci.yaml/badge.svg)](https://github.com/thegenem0/metrovector/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/gh/thegenem0/metrovector/graph/badge.svg?token=A334YLOQAA)](https://codecov.io/gh/thegenem0/metrovector)
 ## Overview
 
 MVF (Metro Vector Format) is a binary file format optimized for storing large collections of high-dimensional vectors with associated metadata.
