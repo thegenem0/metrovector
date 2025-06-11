@@ -25,8 +25,10 @@ jobs:
       #
       - name: Install flatc
         run: |
-          sudo apt-get update
-          sudo apt-get install -y flatbuffers
+          wget https://github.com/google/flatbuffers/releases/download/v25.2.10/Linux.flatc.binary.clang++-18.zip
+          unzip Linux.flatc.binary.clang++-18.zip
+          sudo mv flatc /usr/local/bin
+          sudo chmod +x /usr/local/bin/flatc
           flatc --version
       #
       - name: Install cargo-nextest
