@@ -27,6 +27,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y flatbuffers-compiler
+          flatc --version
       #
       - name: Install cargo-nextest
         uses: taiki-e/install-action@cargo-nextest
