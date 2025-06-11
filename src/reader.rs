@@ -6,7 +6,7 @@ use crate::{
     METRO_FOOTER_SIZE, METRO_MAGIC,
     errors::{MvfError, Result},
     mvf_fbs::FileFooter,
-    vector::vector_space::VectorSpace,
+    vectors::vector_space::VectorSpace,
 };
 
 /// Reader for MetroVector Files (MVF).

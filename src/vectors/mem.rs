@@ -227,7 +227,7 @@ mod tests {
         mvf_fbs::DataType,
         reader::MvfReader,
         tests::{TestContext, create_test_mvf},
-        vector::access::AccessPattern,
+        vectors::access::AccessPattern,
     };
 
     use super::*;

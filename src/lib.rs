@@ -5,7 +5,7 @@ pub mod builder;
 pub mod reader;
 
 #[allow(dead_code)]
-pub mod vector;
+pub mod vectors;
 
 #[cfg(test)]
 mod tests;
@@ -20,6 +20,7 @@ mod metrovector_fbs {
     #![allow(non_snake_case)]
     #![allow(non_upper_case_globals)]
     #![allow(unsafe_op_in_unsafe_fn)]
+    #![allow(clippy::all)]
 
     include!("../generated/mod.rs");
 }
