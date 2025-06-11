@@ -1,0 +1,51 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # Install Rust toolchain
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      #
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@cargo-nextest
+      #
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      #
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      #
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      #
+      - name: Check formatting
+        run: cargo fmt --all --check
+      #
+      - name: Run Tests
+        run: cargo nextest run
+      #
+      - name: Run Code Coverage
+        run: cargo llvm-cov nextest --all-features --workspace --codecov --output-path codecov.json
+      #
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: codecov.json
+          fail_ci_if_error: true
