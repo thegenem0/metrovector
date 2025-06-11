@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{ pkgs, ... }: {
 
   languages.rust = {
     enable = true;
@@ -35,7 +34,7 @@
 
     run_tests = {
       exec = ''
-        cargo llvm-cov nextest --html --ignore-filename-regex 'generated'
+        cargo llvm-cov nextest --html
       '';
     };
   };

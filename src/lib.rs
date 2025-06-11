@@ -1,17 +1,9 @@
 #[allow(dead_code)]
 pub mod builder;
-
-#[allow(dead_code)]
-pub mod reader;
-
-#[allow(dead_code)]
-pub mod vectors;
-
-#[cfg(test)]
-mod tests;
-
 pub mod errors;
 pub mod io;
+pub mod reader;
+pub mod vectors;
 
 mod metrovector_fbs {
     #![allow(unused_imports)]
@@ -22,8 +14,11 @@ mod metrovector_fbs {
     #![allow(unsafe_op_in_unsafe_fn)]
     #![allow(clippy::all)]
 
-    include!("../generated/mod.rs");
+    include!(concat!(env!("OUT_DIR"), "/fbs/mod.rs"));
 }
+
+#[cfg(test)]
+mod tests;
 
 pub use metrovector_fbs::metrovector::fbs as mvf_fbs;
 

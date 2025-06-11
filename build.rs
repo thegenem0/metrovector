@@ -3,9 +3,12 @@ use std::path::Path;
 fn main() {
     println!("cargo:rerun-if-changed=schema/");
 
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+
     // flatc -o . --rust --rust-module-root-file mvf.fbs core.fbs extensions.fbs index.fbs types.fb
 
-    // 1. Run flatc to generate the individual `*_generated.rs` files
+    let generated_path = Path::join(Path::new(&out_dir), Path::new("fbs/"));
+
     flatc_rust::run(flatc_rust::Args {
         lang: "rust",
         inputs: &[
@@ -15,7 +18,7 @@ fn main() {
             Path::new("schema/extensions.fbs"),
             Path::new("schema/mvf.fbs"),
         ],
-        out_dir: Path::new("./generated"),
+        out_dir: generated_path.as_path(),
         extra: &["--rust-module-root-file"],
         ..Default::default()
     })

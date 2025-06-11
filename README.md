@@ -175,7 +175,7 @@ cargo nextest run
 Get test coverage with:
 
 ```bash
-cargo llvm-cov nextest --html --ingore-filename-regex 'generated'
+cargo llvm-cov nextest --html
 ```
 
 ## Contributing
