@@ -19,7 +19,7 @@ half = "2.6.0"
 memmap2 = "0.9.5"
 rayon = "1.10.0"
 serde = "1.0.219"
-thiserror = "2.0.12"
+thiserror = "2.0.15"
 
 [build-dependencies]
 flatc-rust = "0.2.0"
